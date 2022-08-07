@@ -102,7 +102,6 @@ def parse_click(x, y): #returns row and colum clicked based on x and y coords
 
 def generate_map(cols, rows, mines = False, mine_count = None):
     if not mines:
-        map = [[0]*cols]*rows
         map = [[0 for _ in range(cols)] for _ in range(rows)]
     else:
         pass
