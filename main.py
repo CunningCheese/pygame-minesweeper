@@ -3,7 +3,7 @@ import math
 import pygame
 from pygame.locals import *
 
-mine_grid = [ #mine = 1, nomine = 0
+mine_grid = [ #mine = 1, no_mine = 0
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
@@ -30,6 +30,8 @@ block_size = 15
 
 def main(cols, rows):
     pygame.init()
+
+    player_grid = generate_map(8, 8)
 
     # IMAGES INIT
     unclicked_tile = pygame.image.load("./resources/unclicked.jpg")
@@ -72,7 +74,7 @@ def main(cols, rows):
             if event.type == pygame.QUIT:
                 running = False    
             
-            if event.type == pygame.MOUSEBUTTONUP:
+            if event.type == pygame.MOUSEBUTTONUP: # if clicked
                 mousePos = pygame.mouse.get_pos()
                 clicked_tile = parse_click(mousePos[0], mousePos[1])
                 clicked_row = clicked_tile[0]
@@ -80,9 +82,11 @@ def main(cols, rows):
 
                 print(clicked_tile)
 
-                if player_grid[clicked_row][clicked_column] == 0: #check if clicked
+                if player_grid[clicked_row][clicked_column] == 0: #check if not clicked
                     player_grid[clicked_row][clicked_column] = 1 #change to clicked
-                    screen.blit(zero_mines, (clicked_column*block_size, clicked_row*block_size)) #
+                    screen.blit(zero_mines, (clicked_column*block_size, clicked_row*block_size)) #palceholder
+                else:
+                    print("clicked!")
 
         pygame.display.update()
 
@@ -96,8 +100,14 @@ def parse_click(x, y): #returns row and colum clicked based on x and y coords
 
 
 
-def generate_map(cols, rows):
-    pass
+def generate_map(cols, rows, mines = False, mine_count = None):
+    if not mines:
+        map = [[0]*cols]*rows
+        map = [[0 for _ in range(cols)] for _ in range(rows)]
+    else:
+        pass
+    
+    return list(map)
 
 
 
