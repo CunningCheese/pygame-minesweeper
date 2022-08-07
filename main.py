@@ -4,17 +4,7 @@ import random
 import pygame
 from pygame.locals import *
 
-mine_grid = [ #mine = 1, no_mine = 0
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0]
-]
-
+"""
 player_grid = [ #clicked = 1, unclicked = 0
     [0,0,0,0,0,0,0,0], 
     [0,0,0,0,0,0,0,0],
@@ -25,6 +15,7 @@ player_grid = [ #clicked = 1, unclicked = 0
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0]
 ]
+"""
 
 block_size = 15
 
@@ -33,28 +24,12 @@ def main(cols, rows):
     pygame.init()
 
     player_grid = generate_map(8, 8)
-    mine_map = generate_map(8, 8, 8)
-    print(mine_map)
-
-    # IMAGES INIT
-    unclicked_tile = pygame.image.load("./resources/unclicked.jpg")
-    flagged_tile = pygame.image.load("./resources/flag.jpg")
-    mine_tile = pygame.image.load("./resources/mine.jpg")
-    flagged_mine_tile = pygame.image.load("./resources/mineflag.jpg")
-
-    zero_mines = pygame.image.load("./resources/0.jpg")
-    one_mine = pygame.image.load("./resources/1.jpg")
-    two_mines = pygame.image.load("./resources/2.jpg")
-    three_mines = pygame.image.load("./resources/3.jpg")
-    four_mines = pygame.image.load("./resources/4.jpg")
-    five_mines = pygame.image.load("./resources/5.jpg")
-    six_mines = pygame.image.load("./resources/6.jpg")
-    seven_mines = pygame.image.load("./resources/7.jpg")
-    eight_mines = pygame.image.load("./resources/8.jpg")
+    mine_grid = generate_map(8, 8, 8)
+    print(mine_grid)
 
 
     #logo and title
-    logo = mine_tile
+    logo = pygame.image.load("./resources/mine.jpg")
     pygame.display.set_icon(logo)
     pygame.display.set_caption("MINESWEEPER") #title
 
@@ -65,7 +40,7 @@ def main(cols, rows):
     #generate empty board
     for row in range(0, len(mine_grid)):
             for col in range(0, len(mine_grid[row])):
-                 screen.blit(unclicked_tile, (col*block_size, row*block_size))
+                 draw_tile(row, col, "unclicked", screen)
 
     while running: #main loop
         
@@ -84,12 +59,23 @@ def main(cols, rows):
                 clicked_column = clicked_tile[1]
 
                 print(clicked_tile)
+                if (event.button == 1): #check for left click
 
-                if player_grid[clicked_row][clicked_column] == 0: #check if not clicked
-                    player_grid[clicked_row][clicked_column] = 1 #change to clicked
-                    screen.blit(zero_mines, (clicked_column*block_size, clicked_row*block_size)) #palceholder
-                else:
-                    print("clicked!")
+                    if player_grid[clicked_row][clicked_column] == 0: #check if not clicked
+                        player_grid[clicked_row][clicked_column] = 1 #change to clikced
+
+                        if mine_grid[clicked_row][clicked_column]: #check for mines
+                            draw_tile(clicked_row, clicked_column, "mine", screen)
+
+                        else:
+                            #change to zero tile icon
+                            draw_tile(clicked_row, clicked_column, "zero", screen)
+                            adjacent = check_adjacent(clicked_column, clicked_row, mine_grid, rows, cols)
+                            print(adjacent)
+
+                    else:
+                        adjacent = check_adjacent(clicked_column, clicked_row, mine_grid, rows, cols)
+                        print(adjacent)
 
         pygame.display.update()
 
@@ -118,7 +104,6 @@ def generate_map(cols: int, rows: int, mine_count: int = None) -> list:
         mine_list = random.sample(range(1, total_tiles+1), mine_count)
 
         map = generate_map(cols, rows) #empty map
-        print(map) 
         pos = 0
         
         #place mines on map
@@ -136,6 +121,102 @@ def generate_map(cols: int, rows: int, mine_count: int = None) -> list:
 
     return list(map)
 
+
+#checks for adjacent mines
+def check_adjacent(col: int, row: int, mine_map: list, max_rows: int, max_cols: int) -> list:
+    
+    max_cols -= 1
+    max_rows -= 1
+    adj_list = []
+    
+    #check above
+    if row > 0 and mine_map[row-1][col] == 1:
+        adj_list.append((row-1, col))
+        print("Above")
+    #check below
+    if row < max_rows and mine_map[row+1][col] == 1:
+        adj_list.append((row+1, col))
+        print("Below")
+    #check left
+    if col > 0 and mine_map[row][col-1] == 1:
+        adj_list.append((row, col-1))
+        print("left")
+    #check right
+    if col < max_cols and mine_map[row][col+1] == 1:
+        adj_list.append((row, col+1))
+        print("Right")
+    
+    #check top-left
+    if row > 0 and col > 0 and mine_map[row-1][col-1]:
+        adj_list.append((row-1, col-1))
+        print("Top-left")
+    #check top-right
+    if row > 0 and col < max_cols and mine_map[row-1][col+1] == 1:
+        print("Top-right")
+        adj_list.append((row-1, col+1))
+    #check bottom-left
+    if row < max_rows and col > 0 and mine_map[row+1][col-1]:
+        adj_list.append((row+1, col-1))
+        print("Bottom left")
+    #check bottom-right
+    if row < max_rows and col < max_cols and mine_map[row+1][col+1]:
+        adj_list.append((row+1, col+1))
+        print("Bottom right")
+
+    return adj_list
+        
+
+def draw_tile(row, col, tile: str, display):
+
+    # IMAGES INIT
+    unclicked_tile = pygame.image.load("./resources/unclicked.jpg")
+    flagged_tile = pygame.image.load("./resources/flag.jpg")
+    mine_tile = pygame.image.load("./resources/mine.jpg")
+    flagged_mine_tile = pygame.image.load("./resources/mineflag.jpg")
+
+    zero_mines = pygame.image.load("./resources/0.jpg")
+    one_mine = pygame.image.load("./resources/1.jpg")
+    two_mines = pygame.image.load("./resources/2.jpg")
+    three_mines = pygame.image.load("./resources/3.jpg")
+    four_mines = pygame.image.load("./resources/4.jpg")
+    five_mines = pygame.image.load("./resources/5.jpg")
+    six_mines = pygame.image.load("./resources/6.jpg")
+    seven_mines = pygame.image.load("./resources/7.jpg")
+    eight_mines = pygame.image.load("./resources/8.jpg")
+
+    tile = tile.lower()
+    if tile == "unclicked":
+        display.blit(unclicked_tile, (col*block_size, row*block_size))
+    elif tile == "flag":
+        display.blit(flagged_tile, (col*block_size, row*block_size))
+    elif tile == "mine":
+        display.blit(mine_tile, (col*block_size, row*block_size))
+    elif tile == "flagmine":
+        display.blit(flagged_mine_tile, (col*block_size, row*block_size))
+    elif tile == "zero":
+        display.blit(zero_mines, (col*block_size, row*block_size))
+    elif tile == "one":
+        display.blit(one_mine, (col*block_size, row*block_size))
+    elif tile == "two":
+        display.blit(two_mines, (col*block_size, row*block_size))
+    elif tile == "three":
+        display.blit(three_mines, (col*block_size, row*block_size))
+    elif tile == "four":
+        display.blit(four_mines, (col*block_size, row*block_size))
+    elif tile == "five":
+        display.blit(five_mines, (col*block_size, row*block_size))
+    elif tile == "six":
+        display.blit(six_mines, (col*block_size, row*block_size))
+    elif tile == "seven":
+        display.blit(seven_mines, (col*block_size, row*block_size))
+    elif tile == "eight":
+        display.blit(eight_mines, (col*block_size, row*block_size))
+    else:
+        raise RuntimeError("Invalid tile type")
+    
+    
+
+    pass
 
 
 if __name__ == "__main__":
