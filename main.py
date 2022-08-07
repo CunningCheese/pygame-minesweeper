@@ -1,5 +1,6 @@
 #A simple python port of minesweeper in pygame
 import math
+import random
 import pygame
 from pygame.locals import *
 
@@ -15,7 +16,7 @@ mine_grid = [ #mine = 1, no_mine = 0
 ]
 
 player_grid = [ #clicked = 1, unclicked = 0
-    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0], 
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
     [0,0,0,0,0,0,0,0],
@@ -32,6 +33,8 @@ def main(cols, rows):
     pygame.init()
 
     player_grid = generate_map(8, 8)
+    mine_map = generate_map(8, 8, 8)
+    print(mine_map)
 
     # IMAGES INIT
     unclicked_tile = pygame.image.load("./resources/unclicked.jpg")
@@ -99,13 +102,38 @@ def parse_click(x, y): #returns row and colum clicked based on x and y coords
     return (row, col)
 
 
-
-def generate_map(cols, rows, mines = False, mine_count = None):
-    if not mines:
+#generates empty 2d list if no mines specified
+#if mines specified
+def generate_map(cols: int, rows: int, mine_count: int = None) -> list: 
+    if mine_count == None: #generate empty map
         map = [[0 for _ in range(cols)] for _ in range(rows)]
-    else:
-        pass
-    
+
+    else: #generate map with mines
+        total_tiles = cols*rows
+
+        if mine_count >= total_tiles:
+            raise ValueError("More mines than tiles!")
+        
+        # generate random positions for mines          
+        mine_list = random.sample(range(1, total_tiles+1), mine_count)
+
+        map = generate_map(cols, rows) #empty map
+        print(map) 
+        pos = 0
+        
+        #place mines on map
+        cur_row = 0
+        for row in map:
+            cur_col = 0
+            for col in row:
+                pos += 1
+                if pos in mine_list:
+                    map[cur_row][cur_col] = 1
+                cur_col += 1
+            cur_row += 1
+            
+        
+
     return list(map)
 
 
