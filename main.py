@@ -23,9 +23,11 @@ block_size = 15
 def main(cols, rows):
     pygame.init()
 
-    player_grid = generate_map(8, 8)
-    mine_grid = generate_map(8, 8, 8)
-    print(mine_grid)
+    global player_grid, mine_grid, screen
+
+    player_grid = generate_map(cols, rows)
+    mine_grid = generate_map(cols, rows, 8)
+    # print(mine_grid)
 
 
     #logo and title
@@ -40,12 +42,9 @@ def main(cols, rows):
     #generate empty board
     for row in range(0, len(mine_grid)):
             for col in range(0, len(mine_grid[row])):
-                 draw_tile(row, col, "unclicked", screen)
+                 draw_tile(row, col, "unclicked")
 
-    while running: #main loop
-        
-        #write tiles from map
-        
+    while running: #main loop        
 
         #event handling
         for event in pygame.event.get():
@@ -58,24 +57,54 @@ def main(cols, rows):
                 clicked_row = clicked_tile[0]
                 clicked_column = clicked_tile[1]
 
-                print(clicked_tile)
+                # print(clicked_tile)
                 if (event.button == 1): #check for left click
 
                     if player_grid[clicked_row][clicked_column] == 0: #check if not clicked
                         player_grid[clicked_row][clicked_column] = 1 #change to clikced
 
-                        if mine_grid[clicked_row][clicked_column]: #check for mines
-                            draw_tile(clicked_row, clicked_column, "mine", screen)
+                        if mine_grid[clicked_row][clicked_column]: #check if mine clicked
+                            draw_tile(clicked_row, clicked_column, "mine")
 
                         else:
-                            #change to zero tile icon
-                            draw_tile(clicked_row, clicked_column, "zero", screen)
-                            adjacent = check_adjacent(clicked_column, clicked_row, mine_grid, rows, cols)
-                            print(adjacent)
+                            #find adjacent tiles
+                            adjacent_tiles = find_adjacent(clicked_column, clicked_row)
+                            adj_mines = adjacent_tiles[0]
+                            mine_count = len(adj_mines)
+                            adj_empty = adjacent_tiles[1]
+
+                            #render numbered block
+                            if mine_count == 0:
+                                draw_tile(clicked_row, clicked_column, "zero")
+                                render_adjacent(adjacent_tiles)
+                            elif mine_count == 1:
+                                draw_tile(clicked_row, clicked_column, "one")
+                            elif mine_count == 2:
+                                draw_tile(clicked_row, clicked_column, "two")
+                            elif mine_count == 3:
+                                draw_tile(clicked_row, clicked_column, "three")
+                            elif mine_count == 4:
+                                draw_tile(clicked_row, clicked_column, "four")
+                            elif mine_count == 5:
+                                draw_tile(clicked_row, clicked_column, "five")
+                            elif mine_count == 6:
+                                draw_tile(clicked_row, clicked_column, "six")
+                            elif mine_count == 7:
+                                draw_tile(clicked_row, clicked_column, "seven")
+                            elif mine_count == 8:
+                                draw_tile(clicked_row, clicked_column, "eight")
+
+                            
+                            
+
+
 
                     else:
-                        adjacent = check_adjacent(clicked_column, clicked_row, mine_grid, rows, cols)
-                        print(adjacent)
+                        adjacent_tiles = find_adjacent(clicked_column, clicked_row)
+                        # print(adjacent_tiles)
+                        pass
+            
+
 
         pygame.display.update()
 
@@ -122,51 +151,64 @@ def generate_map(cols: int, rows: int, mine_count: int = None) -> list:
     return list(map)
 
 
-#checks for adjacent mines
-def check_adjacent(col: int, row: int, mine_map: list, max_rows: int, max_cols: int) -> list:
-    
-    max_cols -= 1
-    max_rows -= 1
-    adj_list = []
-    
-    #check above
-    if row > 0 and mine_map[row-1][col] == 1:
-        adj_list.append((row-1, col))
-        print("Above")
-    #check below
-    if row < max_rows and mine_map[row+1][col] == 1:
-        adj_list.append((row+1, col))
-        print("Below")
-    #check left
-    if col > 0 and mine_map[row][col-1] == 1:
-        adj_list.append((row, col-1))
-        print("left")
-    #check right
-    if col < max_cols and mine_map[row][col+1] == 1:
-        adj_list.append((row, col+1))
-        print("Right")
-    
-    #check top-left
-    if row > 0 and col > 0 and mine_map[row-1][col-1]:
-        adj_list.append((row-1, col-1))
-        print("Top-left")
-    #check top-right
-    if row > 0 and col < max_cols and mine_map[row-1][col+1] == 1:
-        print("Top-right")
-        adj_list.append((row-1, col+1))
-    #check bottom-left
-    if row < max_rows and col > 0 and mine_map[row+1][col-1]:
-        adj_list.append((row+1, col-1))
-        print("Bottom left")
-    #check bottom-right
-    if row < max_rows and col < max_cols and mine_map[row+1][col+1]:
-        adj_list.append((row+1, col+1))
-        print("Bottom right")
+#checks for adjacent mines and empty tiles
+#returns list = [[mine-coords], [empty-coords]]
+#(can't go out of bounds)
+def find_adjacent(row, col):
+    max_rows = len(mine_grid[0])
+    max_cols = len(mine_grid)
 
-    return adj_list
+    final_adj = []
+    empty_adj = []
+    mine_adj = []
+
+    for col_diff in (-1, 0, 1):
+        for row_diff in (-1, 0, 1):
+            if col_diff == 0 and row_diff == 0:
+                continue
+            new_col, new_row = row + col_diff, col + row_diff
+            if new_col < 0 or new_col >= max_rows:
+                continue
+            if new_row < 0 or new_row >= max_cols:
+                continue
+            if mine_grid[new_col][new_row] == 1:
+                mine_adj.append((new_col, new_row))
+            else:
+                empty_adj.append((new_col, new_row))
+
+    final_adj = [mine_adj, empty_adj]
+    return final_adj
+
+
+def render_adjacent(full_adj: list): # displays the tiles around a 'zero' tile, use mine list
+    max_rows = len(mine_grid)-1
+    max_col = len(mine_grid[0])-1
+
+    for tile in full_adj[1]: #loop through adjacent tiles
+        if (tile[0] <= max_rows and tile[0] >= 0) and (tile[1] <= max_col): # check if in bounds
+            tile_adj = find_adjacent(tile[1], tile[0])
+            mine_count = len(tile_adj[0])
+            row = tile[0]
+            col = tile[1]
+
+            print("Tile:", tile)
+            print("PG:", player_grid)
+
+            if player_grid[row][col] == 0: #check if not revealed
+                # player_grid[row][col] = 1 #change to revealed
+                if mine_count == 0:
+                    draw_tile(row, col, "zero")
+                    # render_adjacent(tile_adj)
+                elif mine_count == 1:
+                    draw_tile(row, col, "one")
         
 
-def draw_tile(row, col, tile: str, display):
+        
+
+    pass
+        
+
+def draw_tile(row: int, col: int, tile: str) -> None:
 
     # IMAGES INIT
     unclicked_tile = pygame.image.load("./resources/unclicked.jpg")
@@ -186,37 +228,33 @@ def draw_tile(row, col, tile: str, display):
 
     tile = tile.lower()
     if tile == "unclicked":
-        display.blit(unclicked_tile, (col*block_size, row*block_size))
+        screen.blit(unclicked_tile, (col*block_size, row*block_size))
     elif tile == "flag":
-        display.blit(flagged_tile, (col*block_size, row*block_size))
+        screen.blit(flagged_tile, (col*block_size, row*block_size))
     elif tile == "mine":
-        display.blit(mine_tile, (col*block_size, row*block_size))
+        screen.blit(mine_tile, (col*block_size, row*block_size))
     elif tile == "flagmine":
-        display.blit(flagged_mine_tile, (col*block_size, row*block_size))
+        screen.blit(flagged_mine_tile, (col*block_size, row*block_size))
     elif tile == "zero":
-        display.blit(zero_mines, (col*block_size, row*block_size))
+        screen.blit(zero_mines, (col*block_size, row*block_size))
     elif tile == "one":
-        display.blit(one_mine, (col*block_size, row*block_size))
+        screen.blit(one_mine, (col*block_size, row*block_size))
     elif tile == "two":
-        display.blit(two_mines, (col*block_size, row*block_size))
+        screen.blit(two_mines, (col*block_size, row*block_size))
     elif tile == "three":
-        display.blit(three_mines, (col*block_size, row*block_size))
+        screen.blit(three_mines, (col*block_size, row*block_size))
     elif tile == "four":
-        display.blit(four_mines, (col*block_size, row*block_size))
+        screen.blit(four_mines, (col*block_size, row*block_size))
     elif tile == "five":
-        display.blit(five_mines, (col*block_size, row*block_size))
+        screen.blit(five_mines, (col*block_size, row*block_size))
     elif tile == "six":
-        display.blit(six_mines, (col*block_size, row*block_size))
+        screen.blit(six_mines, (col*block_size, row*block_size))
     elif tile == "seven":
-        display.blit(seven_mines, (col*block_size, row*block_size))
+        screen.blit(seven_mines, (col*block_size, row*block_size))
     elif tile == "eight":
-        display.blit(eight_mines, (col*block_size, row*block_size))
+        screen.blit(eight_mines, (col*block_size, row*block_size))
     else:
         raise RuntimeError("Invalid tile type")
-    
-    
-
-    pass
 
 
 if __name__ == "__main__":
