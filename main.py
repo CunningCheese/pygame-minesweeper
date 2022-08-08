@@ -20,13 +20,15 @@ player_grid = [ #clicked = 1, unclicked = 0
 block_size = 15
 
 
-def main(cols, rows):
+def main(cols, rows, mine_num):
     pygame.init()
+
+    assert mine_num < rows*cols, "Invalid Mine Count"
 
     global player_grid, mine_grid, screen
 
     player_grid = generate_map(cols, rows)
-    mine_grid = generate_map(cols, rows, 8)
+    mine_grid = generate_map(cols, rows, mine_num)
     # print(mine_grid)
 
 
@@ -60,8 +62,8 @@ def main(cols, rows):
                 # print(clicked_tile)
                 if (event.button == 1): #check for left click
 
-                    if player_grid[clicked_row][clicked_column] == 0: #check if not clicked
-                        player_grid[clicked_row][clicked_column] = 1 #change to clikced
+                    if player_grid[clicked_row][clicked_column] == 0: #check if not revealed
+                        player_grid[clicked_row][clicked_column] = 1 #change to revealed
 
                         if mine_grid[clicked_row][clicked_column]: #check if mine clicked
                             draw_tile(clicked_row, clicked_column, "mine")
@@ -69,6 +71,7 @@ def main(cols, rows):
                         else:
                             #find adjacent tiles
                             adjacent_tiles = find_adjacent(clicked_column, clicked_row)
+                            print(adjacent_tiles)
                             adj_mines = adjacent_tiles[0]
                             mine_count = len(adj_mines)
                             adj_empty = adjacent_tiles[1]
@@ -155,8 +158,8 @@ def generate_map(cols: int, rows: int, mine_count: int = None) -> list:
 #returns list = [[mine-coords], [empty-coords]]
 #(can't go out of bounds)
 def find_adjacent(row, col):
-    max_rows = len(mine_grid[0])
-    max_cols = len(mine_grid)
+    max_rows = len(mine_grid[0])-1
+    max_cols = len(mine_grid)-1
 
     final_adj = []
     empty_adj = []
@@ -166,11 +169,12 @@ def find_adjacent(row, col):
         for row_diff in (-1, 0, 1):
             if col_diff == 0 and row_diff == 0:
                 continue
-            new_col, new_row = row + col_diff, col + row_diff
-            if new_col < 0 or new_col >= max_rows:
+            new_col, new_row = col + col_diff, row + row_diff
+            if new_col < 0 or new_col > max_cols:
                 continue
-            if new_row < 0 or new_row >= max_cols:
+            if new_row < 0 or new_row > max_rows:
                 continue
+
             if mine_grid[new_col][new_row] == 1:
                 mine_adj.append((new_col, new_row))
             else:
@@ -191,21 +195,27 @@ def render_adjacent(full_adj: list): # displays the tiles around a 'zero' tile, 
             row = tile[0]
             col = tile[1]
 
-            print("Tile:", tile)
-            print("PG:", player_grid)
-
             if player_grid[row][col] == 0: #check if not revealed
-                # player_grid[row][col] = 1 #change to revealed
+                player_grid[row][col] = 1 #change to revealed
                 if mine_count == 0:
                     draw_tile(row, col, "zero")
-                    # render_adjacent(tile_adj)
+                    # render_adjacent(tile_adj)  
                 elif mine_count == 1:
                     draw_tile(row, col, "one")
-        
-
-        
-
-    pass
+                elif mine_count == 2:
+                    draw_tile(row, col, "two")
+                elif mine_count == 3:
+                    draw_tile(row, col, "three")
+                elif mine_count == 4:
+                    draw_tile(row, col, "four")
+                elif mine_count == 5:
+                    draw_tile(row, col, "five")
+                elif mine_count == 6:
+                    draw_tile(row, col, "six")
+                elif mine_count == 7:
+                    draw_tile(row, col, "seven")
+                elif mine_count == 8:
+                    draw_tile(row, col, "eight")  
         
 
 def draw_tile(row: int, col: int, tile: str) -> None:
@@ -258,6 +268,6 @@ def draw_tile(row: int, col: int, tile: str) -> None:
 
 
 if __name__ == "__main__":
-    main(8, 8)
+    main(8, 8, 8)
 
 
