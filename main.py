@@ -199,7 +199,7 @@ def render_adjacent(full_adj: list): # displays the tiles around a 'zero' tile, 
                 player_grid[row][col] = 1 #change to revealed
                 if mine_count == 0:
                     draw_tile(row, col, "zero")
-                    # render_adjacent(tile_adj)  
+                    render_adjacent(tile_adj)  
                 elif mine_count == 1:
                     draw_tile(row, col, "one")
                 elif mine_count == 2:
