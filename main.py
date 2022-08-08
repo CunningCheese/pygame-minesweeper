@@ -62,7 +62,7 @@ def main(cols, rows, mine_num):
                 # print(clicked_tile)
                 if (event.button == 1): #check for left click
 
-                    if player_grid[clicked_row][clicked_column] == 0: #check if not revealed
+                    if player_grid[clicked_row][clicked_column] == 0: #check if not revealed or flagged
                         player_grid[clicked_row][clicked_column] = 1 #change to revealed
 
                         if mine_grid[clicked_row][clicked_column]: #check if mine clicked
@@ -97,15 +97,17 @@ def main(cols, rows, mine_num):
                             elif mine_count == 8:
                                 draw_tile(clicked_row, clicked_column, "eight")
 
-                            
-                            
-
-
-
-                    else:
-                        adjacent_tiles = find_adjacent(clicked_column, clicked_row)
-                        # print(adjacent_tiles)
+                    else: #if revealed...
                         pass
+                if (event.button == 3): #right click
+                    print("hi")
+                    if player_grid[clicked_row][clicked_column] == 2: # check if flagged
+                        player_grid[clicked_row][clicked_column] = 0 # change to not flagged
+                        draw_tile(clicked_row, clicked_column, "unclicked") # update to unclicked
+                    elif player_grid[clicked_row][clicked_column] == 0: # if not flagged and not revealed
+                        player_grid[clicked_row][clicked_column] = 2 # change to flagged
+                        draw_tile(clicked_row, clicked_column, "flag") # update to flagged
+                    pass
             
 
 
@@ -189,7 +191,7 @@ def render_adjacent(full_adj: list): # displays the tiles around a 'zero' tile, 
     max_col = len(mine_grid[0])-1
 
     for tile in full_adj[1]: #loop through adjacent tiles
-        if (tile[0] <= max_rows and tile[0] >= 0) and (tile[1] <= max_col): # check if in bounds
+        if (tile[0] <= max_rows and tile[0] >= 0) and (tile[1] <= max_col and tile[1] >= 0): # check if in bounds
             tile_adj = find_adjacent(tile[1], tile[0])
             mine_count = len(tile_adj[0])
             row = tile[0]
