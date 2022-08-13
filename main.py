@@ -27,6 +27,7 @@ unclicked_tile = pygame.transform.scale(pygame.image.load("./resources/unclicked
 flagged_tile = pygame.transform.scale(pygame.image.load("./resources/flag.jpg"), (block_size*scale, block_size*scale))
 mine_tile = pygame.transform.scale(pygame.image.load("./resources/mine.jpg"), (block_size*scale, block_size*scale))
 flagged_mine_tile = pygame.transform.scale(pygame.image.load("./resources/mineflag.jpg"), (block_size*scale, block_size*scale))
+clicked_mine_tile = pygame.transform.scale(pygame.image.load("./resources/redmine.jpg"), (block_size*scale, block_size*scale))
 
 zero_mines = pygame.transform.scale(pygame.image.load("./resources/0.jpg"), (block_size*scale, block_size*scale))
 one_mine = pygame.transform.scale(pygame.image.load("./resources/1.jpg"), (block_size*scale, block_size*scale))
@@ -52,6 +53,7 @@ def main(cols: int, rows: int, mine_num: int):
     logo = pygame.image.load("./resources/mine.jpg")
     pygame.display.set_icon(logo)
     pygame.display.set_caption("MINESWEEPER") #title
+
 
     screen = pygame.display.set_mode((block_size*cols*scale, block_size*rows*scale)) #display screen
 
@@ -93,6 +95,7 @@ def main(cols: int, rows: int, mine_num: int):
 
                         if mine_grid[clicked_row][clicked_column] == 1: #check if mine clicked
                             render_all_mines()
+                            draw_tile(clicked_row, clicked_column, "redmine")
                             running = False
                             lost = True
 
@@ -149,11 +152,11 @@ def main(cols: int, rows: int, mine_num: int):
         clock.tick(30) # framerate 
 
     if quit == False:
-        time.sleep(2)
-        # if lost:
-        #     lose_animation()
-        # else:
-        #     win_animation()
+        time.sleep(1.5)
+        if lost:
+            end_animation()
+        else:
+            end_animation()
         time.sleep(1)
         main(cols, rows, mine_num)
 
@@ -237,19 +240,11 @@ def find_adjacent(row, col):
     final_adj = [mine_adj, empty_adj]
     return final_adj
 
-
-def win_animation():
+def end_animation():
     for row in range(len(player_grid)):
         for col in range(len(player_grid[0])):
-            draw_tile(row, col, "green")
-            time.sleep(0.2)
-            pygame.display.update()
-
-def lose_animation():
-    for row in range(len(player_grid)):
-        for col in range(len(player_grid[0])):
-            draw_tile(row, col, "red")
-            time.sleep(0.1)
+            draw_tile(row, col, "unclicked")
+            time.sleep(0.025)
             pygame.display.update()
 
 
@@ -300,6 +295,7 @@ def render_adjacent(full_adj: list): # displays the tiles around a 'zero' tile, 
                 elif mine_count == 8:
                     draw_tile(row, col, "eight") 
 
+
 def render_all_mines(): # render all mines on screen on lose
     cur_row = 0
     for row in mine_grid:
@@ -316,10 +312,7 @@ def render_all_mines(): # render all mines on screen on lose
             if player_grid[row][col] == 2:
                 if mine_grid[row][col] != 1:
                     draw_tile(row, col, "flagmine")
-
-
-
-        
+                        
 
 def draw_tile(row: int, col: int, tile: str) -> None:
 
@@ -331,6 +324,8 @@ def draw_tile(row: int, col: int, tile: str) -> None:
         screen.blit(flagged_tile, (col*block_size*scale, row*block_size*scale))
     elif tile == "mine":
         screen.blit(mine_tile, (col*block_size*scale, row*block_size*scale))
+    elif tile == "redmine":
+        screen.blit(clicked_mine_tile, (col*block_size*scale, row*block_size*scale))
     elif tile == "flagmine":
         screen.blit(flagged_mine_tile, (col*block_size*scale, row*block_size*scale))
 
@@ -367,6 +362,6 @@ def draw_tile(row: int, col: int, tile: str) -> None:
 
 
 if __name__ == "__main__":
-    main(8, 8, 3)
+    main(8, 8, 2)
 
 
